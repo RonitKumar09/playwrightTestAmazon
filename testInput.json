@@ -1,0 +1,16 @@
+{
+  "Data": [
+    {
+      "url": "https://amazon.in",
+      "searchProduct": "mobiles",
+      "mobileBrand": ["ALL"],
+      "exportCount": "1"
+    },
+    {
+      "url": "https://amazon.in",
+      "searchProduct": "mobiles",
+      "mobileBrand": ["Samsung", "Redmi"],
+      "exportCount": "1"
+    }
+  ]
+}
