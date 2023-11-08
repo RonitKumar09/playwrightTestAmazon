@@ -3,14 +3,14 @@
     {
       "url": "https://amazon.in",
       "searchProduct": "mobiles",
-      "mobileBrand": ["ALL"],
+      "mobileBrand": ["Nokia"],
       "exportCount": "1"
     },
     {
       "url": "https://amazon.in",
       "searchProduct": "mobiles",
       "mobileBrand": ["Samsung", "Redmi"],
-      "exportCount": "1"
+      "exportCount": "3"
     }
   ]
 }

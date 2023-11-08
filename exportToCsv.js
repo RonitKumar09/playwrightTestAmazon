@@ -1,30 +1,41 @@
-// function jsonToCsv(jsonData) {
-//   let arrData = jsonData;
-//   let CSV = [];
-//   const headers = Object.keys(arrData[0]);
-//   CSV.push(headers.join(","));
-//   for (const row of arrData) {
-//     const values = headers.map((header) => `"${row[header]}"`);
-//     CSV.push(values.join(","));
-//   }
-//   let link = document.createElement("a");
-//   link.setAttribute("type", "hidden");
-//   let fileType = "text/csv;charset=utf-8";
-//   let fileExt = ".csv";
-//   const blob = new Blob([CSV.join("\n")], { type: fileType });
-//   const url = URL.createObjectURL(blob);
-//   link.href = url;
-//   document.body.appendChild(link);
-//   link.setAttribute("download", "mobilePhonePrices" + fileExt);
-//   link.click();
-// }
+const ExcelJS = require("exceljs");
 
-const exportFromJSON = require("export-from-json");
+async function jsonToCsv(data, name) {
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet("sheet", {
+    showGridLines: false,
+    properties: { tabColor: { argb: "FF00FF00" } },
+  });
 
-function jsonToCsv(data) {
-  const fileName = "mobilePhonePrices";
-  const exportType = exportFromJSON.types.csv;
-  exportFromJSON({ data, fileName, exportType });
+  // add a table to a sheet
+  ws.addTable({
+    name: "ProductPriceList",
+    displayName: "ProductPriceList",
+    ref: "A1",
+    headerRow: true,
+    style: {
+      theme: "TableStyleDark3",
+      showRowStripes: true,
+      showGridLines: false,
+    },
+
+    columns: [{ name: "Product Name" }, { name: "Product Price" }],
+
+    rows: data,
+  });
+
+  ws.columns.forEach(function (column) {
+    let maxLength = 0;
+    column.eachCell({ includeEmpty: true }, function (cell) {
+      let columnLength = cell.value ? cell.value.toString().length : 10;
+      if (columnLength > maxLength) {
+        maxLength = columnLength;
+      }
+    });
+    column.width = maxLength < 10 ? 10 : maxLength;
+  });
+
+  await workbook.xlsx.writeFile(`${name}.xlsx`);
 }
 
 module.exports = jsonToCsv;

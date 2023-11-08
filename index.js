@@ -1,6 +1,6 @@
 // @ts-check
 const testData = require("./testInput.json");
-// const exportToExcel = require("./exportToCsv");
+const exportToExcel = require("./exportToCsv");
 const { expect, chromium, firefox, webkit } = require("@playwright/test");
 
 const PAGE_TITLE =
@@ -29,17 +29,19 @@ async function doTest(url, searchText, filters, pageCount) {
   await expect(page).toHaveTitle(PAGE_TITLE);
   async function collectRecords() {
     try {
-      const newSearch = page.getByPlaceholder(PLACE_HOLDER);
+      const searchBar = page.getByPlaceholder(PLACE_HOLDER);
+      const newSearch = (await searchBar.isVisible())
+        ? searchBar
+        : page.getByTitle("Search For");
       await newSearch.click();
       await newSearch.fill(searchText);
       await page.keyboard.press("Enter");
-      // await page.waitForTimeout(5000);
+
       await page.waitForLoadState("load");
       await expect(page).toHaveTitle(`Amazon.in : ${searchText}`);
 
       async function applyFilter(list) {
-        console.log("filterList: ", list);
-        if (list.some((d) => d.toLowerCase() == "all")) return;
+        if (list.some((d) => d.toLowerCase() == "all")) return true;
         for (let item of list) {
           await page.waitForLoadState("load");
           await page.getByRole("link", { name: item, exact: true }).click();
@@ -47,41 +49,52 @@ async function doTest(url, searchText, filters, pageCount) {
       }
       await applyFilter(filters);
       await page.waitForLoadState("load");
+
       async function getNameAndPrice() {
         const productNames = await page.$$("h2 > a > span");
         const productPrices = await page.$$(".a-price-whole");
         for (let name of productNames) {
           const text = await name.textContent();
-          console.log("\n ProductName: ", text);
+          // console.log("\n ProductName: ", text);
           PRODUCT_NAMES.push(text);
         }
         for (let price of productPrices) {
           const amt = await price.textContent();
-          console.log("\n ProductPrice: ", amt);
+          // console.log("\n ProductPrice: ", amt);
           PRODUCT_PRICES.push(amt);
         }
       }
 
       if (pageCount > 1) {
-        console.log("Andar ghusa");
-        let rep = 1;
+        let rep = 2;
         while (rep <= pageCount) {
-          console.log("Aur Andar ghusa");
           await getNameAndPrice();
-          await page.getByLabel(`Go to next page, page ${pageCount}`).click();
+          await page.getByLabel(`Go to next page, page ${rep}`).click();
           rep++;
         }
+
         browser.close();
-        return { PRODUCT_NAMES, PRODUCT_PRICES };
+
+        return formatData({ PRODUCT_NAMES, PRODUCT_PRICES });
       }
       await getNameAndPrice();
       browser.close();
-      return { PRODUCT_NAMES, PRODUCT_PRICES };
+
+      return formatData({ PRODUCT_NAMES, PRODUCT_PRICES });
     } catch (e) {
       console.log("Error:- ", e);
     }
   }
-  await collectRecords();
+  const nameAndPriceData = await collectRecords();
+  return nameAndPriceData;
+}
+
+function formatData(data) {
+  // console.log("Product Name Length:- ", data?.PRODUCT_NAMES.length);
+  // console.log("Product Price Length:- ", data?.PRODUCT_PRICES.length);
+  return data?.PRODUCT_NAMES.map((d, i) => {
+    return [d, data?.PRODUCT_PRICES[i]];
+  });
 }
 
 async function main() {
@@ -95,10 +108,12 @@ async function main() {
       exportCount
     );
 
-    console.log([returnData]);
-    // exportToExcel([returnData]);
+    console.log("Products:- ", returnData);
+    await exportToExcel(
+      returnData,
+      mobileBrand.reduce((el, acc) => `${acc} and ${el}`)
+    );
   }
-  // exportToExcel([{ foo: "foo" }, { bar: "bar" }]);
 }
 
 main();
