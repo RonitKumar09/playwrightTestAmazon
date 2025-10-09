@@ -1,18 +1,18 @@
 {
-  "name": "interview_assignment",
+  "name": "interview_assignment-e2e-automation",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Amazon E-commerce automation framework using Playwright",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "pnpm exec playwright test",
+    "test:headed": "pnpm exec playwright test --headed",
+    "report": "pnpm exec playwright show-report",
+    "install:browsers": "pnpm exec playwright install"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.39.0",
-    "playwright": "^1.39.0"
-  },
-  "dependencies": {
-    "exceljs": "^4.4.0"
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   }
 }
